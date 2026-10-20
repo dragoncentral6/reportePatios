@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CEGES - Control Vehicular</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <!-- BÁNER SI HAY SESIÓN ADMIN ACTIVA -->
+    <div id="admin-session-banner" style="display: none; background: #2563eb; color: white; padding: 0.4rem 1rem; font-size: 11px; font-weight: 600; text-align: center;">
+        <span><i class="fa-solid fa-user-shield"></i> Sesión de Administrador Activa</span>
+        <button id="btn-return-admin" style="margin-left: 10px; background: white; color: #2563eb; border: none; padding: 2px 8px; border-radius: 4px; font-weight: 700; cursor: pointer;">Ir al Panel Admin</button>
+    </div>
+
+    <!-- INTERFAZ 1: PRINCIPAL / REGISTRO -->
+    <div id="main-interface" class="view active">
+        <header class="app-header">
+            <div class="brand">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+                <span>CEGES</span>
+            </div>
+            <button id="btn-goto-login" class="btn-icon" title="Acceso Admin"><i class="fa-solid fa-user-gear"></i></button>
+        </header>
+
+        <main class="container">
+            <div class="main-grid">
+                <!-- Formulario de Registro -->
+                <section class="card form-card">
+                    <h2>Nuevo Registro</h2>
+                    <form id="registro-form">
+                        <div class="form-group">
+                            <label class="label-title">Fotografía *</label>
+                            <div class="camera-card">
+                                <video id="video" autoplay playsinline></video>
+                                <canvas id="canvas" style="display: none;"></canvas>
+                                <img id="foto-preview" src="" alt="Vista previa" style="display: none;">
+                            </div>
+                            <div class="camera-actions">
+                                <button type="button" id="btn-capturar" class="btn btn-primary"><i class="fa-solid fa-camera"></i> Tomar</button>
+                                <button type="button" id="btn-repetir" class="btn btn-secondary" style="display: none;"><i class="fa-solid fa-rotate-right"></i> Repetir</button>
+                                <label for="input-galeria" class="btn btn-light"><i class="fa-solid fa-image"></i> Galería</label>
+                                <input type="file" id="input-galeria" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label-title">Tipo de Identificador *</label>
+                            <div class="segmented-control">
+                                <input type="radio" name="tipo_id" id="tipo-placa" value="PLACA" checked>
+                                <label for="tipo-placa">Placa</label>
+
+                                <input type="radio" name="tipo_id" id="tipo-chasis" value="CHASIS">
+                                <label for="tipo-chasis">Chasis</label>
+
+                                <input type="radio" name="tipo_id" id="tipo-motor" value="MOTOR">
+                                <label for="tipo-motor">Motor</label>
+                            </div>
+                            <div class="form-group" id="group-vehiculo-select" style="display: none; margin-top: 0.75rem;">
+                                <label for="vehiculo_select" class="label-title">Tipo de Vehículo *</label>
+                                <div class="select-wrapper">
+                                    <select id="vehiculo_select">
+                                        <option value="" disabled selected>-- Seleccione Auto o Moto --</option>
+                                        <option value="AUTO">AUTO</option>
+                                        <option value="MOTO">MOTO</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valor_id" class="label-title">Dato del Identificador *</label>
+                            <input type="text" id="valor_id" required placeholder="EJ. ABC123 O ABC12A">
+                        </div>
+
+                        <button type="submit" class="btn btn-accent btn-block"><i class="fa-solid fa-circle-check"></i> Guardar Registro</button>
+                    </form>
+                </section>
+
+                <!-- Buscador y Tabla de Últimos Registros (Pública: Sin GPS) -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2>Últimos Registros</h2>
+                    </div>
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="buscador-principal" placeholder="Buscar registros...">
+                    </div>
+                    <div class="table-responsive">
+                        <table id="tabla-ultimos">
+                            <thead>
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>Dato</th>
+                                    <th>Tipo</th>
+                                    <th>Vehículo</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- INTERFAZ 2: LOGIN Y ADMINISTRACIÓN -->
+    <div id="login-interface" class="view">
+        <div id="login-screen" class="login-wrapper">
+            <div class="card login-card">
+                <div class="login-header">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h2>Acceso Admin</h2>
+                </div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        <input type="email" id="email" required placeholder="admin@ceges.com" style="width: 100%; padding: 0.5rem 0.7rem; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 12px; outline: none;">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-accent btn-block"><i class="fa-solid fa-right-to-bracket"></i> Ingresar</button>
+                    <button type="button" id="btn-back-main" class="btn btn-text btn-block">Volver al Registro</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="admin-panel" class="admin-container" style="display: none;">
+            <header class="app-header">
+                <div class="brand">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Panel Admin</span>
+                </div>
+                <div class="admin-header-actions">
+                    <button id="btn-goto-registro-from-admin" class="btn-pill-action" style="background: #64748b;" title="Ir a Registro"><i class="fa-solid fa-pen-to-square"></i> Registro</button>
+                    <button id="btn-open-modal-registro" class="btn-pill-action" title="Nuevo Registro"><i class="fa-solid fa-plus"></i> Nuevo</button>
+                    <button id="btn-logout" class="btn-icon" title="Cerrar Sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                </div>
+            </header>
+
+            <main class="container admin-content">
+                <div class="toolbar-card">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="buscador-admin" placeholder="Buscar...">
+                    </div>
+                    
+                    <div class="filters-scroll">
+                        <label for="filtro-tipo">Tipo:</label>
+                        <select id="filtro-tipo" class="pill-select">
+                            <option value="">Todos</option>
+                            <option value="PLACA">Placa</option>
+                            <option value="CHASIS">Chasis</option>
+                            <option value="MOTOR">Motor</option>
+                        </select>
+                        <label for="filtro-vehiculo">Vehículo:</label>
+                        <select id="filtro-vehiculo" class="pill-select">
+                            <option value="">Todos</option>
+                            <option value="AUTO">Auto</option>
+                            <option value="MOTO">Moto</option>
+                        </select>
+                        <label for="filtro-estado">Estado:</label>
+                        <select id="filtro-estado" class="pill-select">
+                            <option value="">Todos</option>
+                            <option value="NORMAL">Normal</option>
+                            <option value="DUPLICADO">Duplicado</option>
+                        </select>
+                        <button id="btn-exportar" class="btn btn-success btn-block"><i class="fa-solid fa-file-excel"></i> Exportar a Excel</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table id="tabla-admin">
+                            <thead>
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>Dato</th>
+                                    <th>Tipo</th>
+                                    <th>Vehículo</th>
+                                    <th>Fecha</th>
+                                    <th>Ubicación</th> <!-- 👈 Exclusivo Admin -->
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL DE NUEVO REGISTRO (DENTRO DE ADMIN) -->
+    <div id="modal-nuevo-registro" class="modal">
+        <div class="modal-content" style="max-width: 420px; max-height: 90vh; overflow-y: auto;">
+            <span class="close-modal-nuevo">&times;</span>
+            <h2>Nuevo Registro (Admin)</h2>
+            <form id="admin-registro-form">
+                <div class="form-group">
+                    <label class="label-title">Fotografía *</label>
+                    <div class="camera-card" style="height: 120px;">
+                        <video id="admin-video" autoplay playsinline></video>
+                        <canvas id="admin-canvas" style="display: none;"></canvas>
+                        <img id="admin-foto-preview" src="" alt="Vista previa" style="display: none;">
+                    </div>
+                    <div class="camera-actions">
+                        <button type="button" id="admin-btn-capturar" class="btn btn-sm btn-primary"><i class="fa-solid fa-camera"></i> Tomar</button>
+                        <button type="button" id="admin-btn-repetir" class="btn btn-sm btn-secondary" style="display: none;"><i class="fa-solid fa-rotate-right"></i> Repetir</button>
+                        <label for="admin-input-galeria" class="btn btn-sm btn-light"><i class="fa-solid fa-image"></i> Galería</label>
+                        <input type="file" id="admin-input-galeria" accept="image/*" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-title">Tipo de Identificador *</label>
+                    <div class="segmented-control">
+                        <input type="radio" name="admin_tipo_id" id="admin-tipo-placa" value="PLACA" checked>
+                        <label for="admin-tipo-placa">Placa</label>
+
+                        <input type="radio" name="admin_tipo_id" id="admin-tipo-chasis" value="CHASIS">
+                        <label for="admin-tipo-chasis">Chasis</label>
+
+                        <input type="radio" name="admin_tipo_id" id="admin-tipo-motor" value="MOTOR">
+                        <label for="admin-tipo-motor">Motor</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="admin-group-vehiculo-select" style="display: none;">
+                    <label for="admin_vehiculo_select" class="label-title">Tipo de Vehículo *</label>
+                    <div class="select-wrapper">
+                        <select id="admin_vehiculo_select" class="pill-select style-full">
+                            <option value="" disabled selected>-- Seleccione Auto o Moto --</option>
+                            <option value="AUTO">AUTO</option>
+                            <option value="MOTO">MOTO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_valor_id" class="label-title">Dato del Identificador *</label>
+                    <input type="text" id="admin_valor_id" required placeholder="EJ. ABC123 O ABC12A">
+                </div>
+
+                <button type="submit" class="btn btn-accent btn-block"><i class="fa-solid fa-circle-check"></i> Guardar y Cerrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE VISUALIZACIÓN Y ACCIONES -->
+    <div id="modal-detalle" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Detalle del Registro</h2>
+            <div class="modal-body" id="modal-body-content"></div>
+            <div class="modal-actions" id="modal-actions-container" style="display: flex; gap: 0.5rem; margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL DE EDICIÓN -->
+    <div id="modal-editar" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-edit">&times;</span>
+            <h2>Editar Registro</h2>
+            <form id="editar-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label class="label-title">Tipo</label>
+                    <select id="edit-tipo" class="pill-select style-full">
+                        <option value="PLACA">Placa</option>
+                        <option value="CHASIS">Chasis</option>
+                        <option value="MOTOR">Motor</option>
+                    </select>
+                </div>
+                <div class="form-group" id="edit-vehiculo-group">
+                    <label class="label-title">Vehículo</label>
+                    <select id="edit-vehiculo" class="pill-select style-full">
+                        <option value="AUTO">AUTO</option>
+                        <option value="MOTO">MOTO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="label-title">Dato</label>
+                    <input type="text" id="edit-valor" required>
+                </div>
+                <button type="submit" class="btn btn-accent btn-block">Actualizar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script principal como módulo -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
