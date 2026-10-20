@@ -80,14 +80,14 @@
                     </form>
                 </section>
 
-                <!-- Buscador y Tabla de Últimos Registros (Pública: Sin GPS) -->
+                <!-- Buscador y Tabla de Últimos Registros -->
                 <section class="card">
                     <div class="card-header">
                         <h2>Últimos Registros</h2>
                     </div>
                     <div class="search-pill">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="buscador-principal" placeholder="Buscar registros...">
+                        <input type="text" id="buscador-principal" placeholder="Buscar registros..." style="text-transform: none;">
                     </div>
                     <div class="table-responsive">
                         <table id="tabla-ultimos">
@@ -117,13 +117,13 @@
                     <h2>Acceso Admin</h2>
                 </div>
                 <form id="login-form">
-                    <div class="form-group">
+                    <div class="form-group" style="text-align: left;">
                         <label>Correo Electrónico</label>
-                        <input type="email" id="email" required placeholder="admin@ceges.com" style="width: 100%; padding: 0.5rem 0.7rem; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 12px; outline: none;">
+                        <input type="email" id="email" required placeholder="admin@ceges.com" style="text-transform: none;">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="text-align: left;">
                         <label>Contraseña</label>
-                        <input type="password" id="password" required placeholder="••••••••">
+                        <input type="password" id="password" required placeholder="••••••••" style="text-transform: none;">
                     </div>
                     <button type="submit" class="btn btn-accent btn-block"><i class="fa-solid fa-right-to-bracket"></i> Ingresar</button>
                     <button type="button" id="btn-back-main" class="btn btn-text btn-block">Volver al Registro</button>
@@ -148,7 +148,7 @@
                 <div class="toolbar-card">
                     <div class="search-pill">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="buscador-admin" placeholder="Buscar...">
+                        <input type="text" id="buscador-admin" placeholder="Buscar..." style="text-transform: none;">
                     </div>
                     
                     <div class="filters-scroll">
@@ -185,7 +185,7 @@
                                     <th>Tipo</th>
                                     <th>Vehículo</th>
                                     <th>Fecha</th>
-                                    <th>Ubicación</th> <!-- 👈 Exclusivo Admin -->
+                                    <th>Ubicación</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
