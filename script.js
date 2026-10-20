@@ -237,6 +237,7 @@ function configurarModalRegistroAdmin() {
 }
 
 function configurarCierresModales() {
+    // Cierre mediante botones X
     document.querySelectorAll('.close-modal, .close-modal-edit, .close-modal-nuevo').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
@@ -244,6 +245,19 @@ function configurarCierresModales() {
             if (adminStreamCamara) {
                 adminStreamCamara.getTracks().forEach(t => t.stop());
                 adminStreamCamara = null;
+            }
+        });
+    });
+
+    // Cierre al hacer clic fuera del contenedor (.modal)
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                if (adminStreamCamara) {
+                    adminStreamCamara.getTracks().forEach(t => t.stop());
+                    adminStreamCamara = null;
+                }
             }
         });
     });
@@ -360,7 +374,20 @@ async function guardarNuevoRegistro(foto, tipo, valor, vehiculo, ubicacion) {
     }
 }
 
-// RENDER TABLA PÚBLICA (Sin datos de GPS)
+// VISOR DE FOTO AMPLIADA
+window.abrirModalFoto = function(urlFoto, titulo) {
+    const modal = document.getElementById('modal-detalle');
+    document.getElementById('modal-body-content').innerHTML = `
+        <h3 style="margin-bottom: 0.5rem; text-align: center; color: var(--primary);">${titulo}</h3>
+        <img src="${urlFoto}" class="modal-img-ampliada" alt="Foto ampliada del vehículo">
+        <p style="text-align: center; color: var(--text-muted); font-size: 11px; margin-top: 0.5rem;">Haz clic fuera de la ventana para cerrar</p>
+    `;
+    const actionsContainer = document.getElementById('modal-actions-container');
+    if (actionsContainer) actionsContainer.style.display = 'none';
+    modal.style.display = 'flex';
+}
+
+// RENDER TABLA PÚBLICA (Sin GPS)
 function renderTablaUltimos(filtro = "") {
     const tbody = document.querySelector('#tabla-ultimos tbody');
     tbody.innerHTML = "";
@@ -378,7 +405,7 @@ function renderTablaUltimos(filtro = "") {
         const tr = document.createElement('tr');
         if (item.estado === 'DUPLICADO') tr.classList.add('fila-duplicada');
         tr.innerHTML = `
-            <td><img src="${item.foto}" class="table-img"></td>
+            <td><img src="${item.foto}" class="table-img" title="Ver foto ampliada" onclick="event.stopPropagation(); abrirModalFoto('${item.foto}', 'Vehículo: ${item.valor}')"></td>
             <td class="col-dato">${item.valor}</td>
             <td>${item.tipo}</td>
             <td>${item.vehiculo}</td>
@@ -389,7 +416,7 @@ function renderTablaUltimos(filtro = "") {
     });
 }
 
-// RENDER TABLA ADMINISTRADOR (Incluye columna de Ubicación GPS)
+// RENDER TABLA ADMINISTRADOR (Incluye Ubicación GPS y foto ampliable)
 function renderTablaAdmin() {
     const tbody = document.querySelector('#tabla-admin tbody');
     const busqueda = document.getElementById('buscador-admin').value.trim().toUpperCase();
@@ -417,11 +444,11 @@ function renderTablaAdmin() {
         
         let linkUbicacion = '<span style="color: var(--text-muted); font-size: 11px;">Sin GPS</span>';
         if (item.ubicacion && item.ubicacion.lat && item.ubicacion.lng) {
-            linkUbicacion = `<a href="https://maps.google.com/?q=${item.ubicacion.lat},${item.ubicacion.lng}" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 600;"><i class="fa-solid fa-location-dot"></i> Ver Mapa</a>`;
+            linkUbicacion = `<a href="https://maps.google.com/?q=${item.ubicacion.lat},${item.ubicacion.lng}" target="_blank" onclick="event.stopPropagation()" style="color: #2563eb; text-decoration: underline; font-weight: 600;"><i class="fa-solid fa-location-dot"></i> Ver Mapa</a>`;
         }
 
         tr.innerHTML = `
-            <td><img src="${item.foto}" class="table-img"></td>
+            <td><img src="${item.foto}" class="table-img" title="Ver foto ampliada" onclick="event.stopPropagation(); abrirModalFoto('${item.foto}', 'Vehículo: ${item.valor}')"></td>
             <td class="col-dato">${item.valor}</td>
             <td>${item.tipo}</td>
             <td>${item.vehiculo}</td>
@@ -440,7 +467,6 @@ function configurarNavegacion() {
     const loginScreen = document.getElementById('login-screen');
     const adminPanel = document.getElementById('admin-panel');
 
-    // Botón para acceder desde la vista pública
     document.getElementById('btn-goto-login').addEventListener('click', () => {
         mainInterface.classList.remove('active');
         loginInterface.classList.add('active');
@@ -456,14 +482,12 @@ function configurarNavegacion() {
         if (streamCamara) { streamCamara.getTracks().forEach(t => t.stop()); streamCamara = null; }
     });
 
-    // Volver de Login a Registro
     document.getElementById('btn-back-main').addEventListener('click', () => {
         loginInterface.classList.remove('active');
         mainInterface.classList.add('active');
         iniciarCamara(video, s => streamCamara = s);
     });
 
-    // Ir de Admin Panel a Registro (Sin cerrar sesión)
     const btnGotoRegistro = document.getElementById('btn-goto-registro-from-admin');
     if (btnGotoRegistro) {
         btnGotoRegistro.addEventListener('click', () => {
@@ -473,7 +497,6 @@ function configurarNavegacion() {
         });
     }
 
-    // Báner superior para volver a Admin
     const btnReturnAdmin = document.getElementById('btn-return-admin');
     if (btnReturnAdmin) {
         btnReturnAdmin.addEventListener('click', () => {
@@ -485,7 +508,6 @@ function configurarNavegacion() {
         });
     }
 
-    // FORMULARIO DE LOGIN AUTENTICADO CON FIREBASE AUTH
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value.trim();
@@ -502,7 +524,6 @@ function configurarNavegacion() {
         }
     });
 
-    // CERRAR SESIÓN
     document.getElementById('btn-logout').addEventListener('click', async () => {
         try {
             await signOut(auth);
@@ -537,7 +558,7 @@ function abrirModalDetalle(item, esAdmin = false) {
     }
 
     document.getElementById('modal-body-content').innerHTML = `
-        <img src="${item.foto}">
+        <img src="${item.foto}" style="cursor: pointer;" onclick="abrirModalFoto('${item.foto}', 'Vehículo: ${item.valor}')" title="Ampliar foto">
         <p><strong>Dato:</strong> ${item.valor}</p>
         <p><strong>Tipo:</strong> ${item.tipo}</p>
         <p><strong>Vehículo:</strong> ${item.vehiculo}</p>
@@ -642,7 +663,7 @@ document.getElementById('editar-form').addEventListener('submit', async (e) => {
     }
 });
 
-// EXPORTACIÓN A EXCEL (Incluyendo coordenadas de GPS para el Admin)
+// EXPORTACIÓN A EXCEL (Con coordenadas GPS para administrador)
 document.getElementById('btn-exportar').addEventListener('click', () => {
     const busqueda = document.getElementById('buscador-admin').value.trim().toUpperCase();
     const tipoFiltro = document.getElementById('filtro-tipo').value;
