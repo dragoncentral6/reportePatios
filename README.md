@@ -1,0 +1,2 @@
+# reportePatios
+inventario dinamico patio
